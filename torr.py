@@ -3,8 +3,10 @@
 
 import argparse
 import HTMLParser
+import os
 import re
 import sys
+import time
 import urllib2
 
 
@@ -82,22 +84,44 @@ def repr_torrent(torrent):
     print 'Magnet link:   %s' % torrent['magnet']
 
 
+def watch(data, query, seconds=5):
+    '''Recheck every few seconds whether a torrent is available and notify if
+    it is available.'''
+    while True:
+        os.system('clear')
+        if len(data) > 0:
+            dates = [torrent['date'] for torrent in data]
+            print '%s torrents found from %s.' % (len(data), ', '.join(dates))
+            for torrent in data:
+                repr_torrent(torrent)
+        else:
+            print 'No torrent found.'
+        time.sleep(seconds)
+        os.system('clear')
+        print 'Checking anew.'
+        data = parse_html(get_html(query))
+
 
 def parse_args():
     '''Set arguments and return parsed arguments.'''
     # TODO Design an interface. We have the data retrieval functions, all
     # that's left is to write the interface itself.
     parser = argparse.ArgumentParser()
-    parser.add_argument('query', help='''Search query.''')
+    parser.add_argument('query',
+                        help='''Search query.''')
+    parser.add_argument('-w', '--watch', action='store_true',
+                        help='''Print a list of torrents available if any.''')
     return parser.parse_args()
 
 
 def main():
     # NOTE This is temporary and only for testing purposes.
+    args = parse_args()
+    html = get_html(args.query)
+    data = parse_html(html)
+    if args.watch:
+        watch(data, args.query)
     try:
-        args = parse_args()
-        html = get_html(args.query)
-        data = parse_html(html)
         repr_data(data)
         msg = '\nEnter a number (1-30) for details or press Enter to dismiss: '
         now = raw_input(msg)
@@ -106,6 +130,7 @@ def main():
         elif int(now) in range(1, 31):
             repr_torrent(data[int(now) - 1])
     except KeyboardInterrupt:
+        print
         sys.exit()
 
 
