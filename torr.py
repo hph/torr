@@ -73,7 +73,7 @@ def repr_data(data):
                                          torrent['name'], torrent['date'])
 
 
-def repr_torrent(torrent):
+def repr_torrent(torrent, watching=False):
     '''Print detailed information about torrent.'''
     print
     print 'Torrent name:  %s' % torrent['name']
@@ -82,6 +82,20 @@ def repr_torrent(torrent):
     print 'Size:          %s' % torrent['size']
     print 'Torrent url:   %s' % torrent['url']
     print 'Magnet link:   %s' % torrent['magnet']
+    if watching:
+        return
+    message = '\nEnter d to download or press Enter to dismiss: '
+    action = raw_input(message)
+    if len(action) == 0:
+        sys.exit()
+    elif action == 'd':
+        # Requires a settings file called conf in the same directory.
+        with open('conf', 'r') as conf:
+            conf = [line.split(':') for line in conf]
+        for setting in conf:
+            if setting[0] == 'torr_prog_path':
+                call = '%s %s' % (setting[1].strip(), torrent['magnet'])
+                os.system(call)
 
 
 def watch(data, query, seconds=5):
@@ -93,7 +107,7 @@ def watch(data, query, seconds=5):
             dates = [torrent['date'] for torrent in data]
             print '%s torrents found from %s.' % (len(data), ', '.join(dates))
             for torrent in data:
-                repr_torrent(torrent)
+                repr_torrent(torrent, True)
         else:
             print 'No torrent found.'
         time.sleep(seconds)
@@ -107,19 +121,26 @@ def parse_args():
     # TODO Design an interface. We have the data retrieval functions, all
     # that's left is to write the interface itself.
     parser = argparse.ArgumentParser()
-    parser.add_argument('query',
-                        help='''Search query.''')
     parser.add_argument('-w', '--watch', action='store_true',
                         help='''Print a list of torrents available if any.''')
     parser.add_argument('-t', '--text', action='store_true',
                         help='''Only print a list of torrents available.''')
+    parser.add_argument('query',
+                        help='''Search query.''')
+    parser.add_argument('index', nargs='?', default=0,
+                        help='''Search query page index. Default is 0.''')
     return parser.parse_args()
 
 
 def main():
     # NOTE This is temporary and only for testing purposes.
+    # TODO Create a download function.
+    # TODO Get data from torrent url.
+    # TODO Create a settings file and a parse settings function.
+    # TODO Add filtering options - only show HD etc and rank torrents based on
+    # the size, the name (contains 720p/1080p/BluRay?) and the number of seeds.
     args = parse_args()
-    html = get_html(args.query)
+    html = get_html(args.query, args.index)
     data = parse_html(html)
     if args.watch:
         watch(data, args.query)
