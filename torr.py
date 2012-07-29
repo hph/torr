@@ -51,7 +51,7 @@ def parse_html(html):
         leeches = re.match(r'(.*)"right">(.*)', result[13], re.M).group(2)[:-5]
         # End of regex piece of shit code.
         data.append({'name': unescape(name),
-                     'url': 'http://thepiratebay.se/%s' % url,
+                     'url': 'http://thepiratebay.se%s' % url,
                      'magnet': magnet,
                      'size': unescape(size),
                      'seeds': seeds,
@@ -111,6 +111,8 @@ def parse_args():
                         help='''Search query.''')
     parser.add_argument('-w', '--watch', action='store_true',
                         help='''Print a list of torrents available if any.''')
+    parser.add_argument('-t', '--text', action='store_true',
+                        help='''Only print a list of torrents available.''')
     return parser.parse_args()
 
 
@@ -124,7 +126,9 @@ def main():
     try:
         repr_data(data)
         msg = '\nEnter a number (1-30) for details or press Enter to dismiss: '
-        now = raw_input(msg)
+        now = '0'
+        if not args.text:
+            now = raw_input(msg)
         if len(now) == 0:
             sys.exit()
         elif int(now) in range(1, 31):
