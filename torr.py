@@ -12,7 +12,7 @@ import urllib2
 
 def unescape(string):
     '''Return HTML unescaped string.'''
-    # string.decode(encoding needed first if there are non-ASCII bytes.
+    string = string.decode('utf8')
     return HTMLParser.HTMLParser().unescape(string)
 
 
