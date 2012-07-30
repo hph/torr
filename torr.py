@@ -98,14 +98,15 @@ def repr_torrent(torrent, watching=False):
                 os.system(call)
 
 
-def watch(data, query, seconds=5):
+def watch(data, query, seconds=30):
     '''Recheck every few seconds whether a torrent is available and notify if
     it is available.'''
     while True:
         os.system('clear')
         if len(data) > 0:
-            dates = [torrent['date'] for torrent in data]
-            print '%s torrents found from %s.' % (len(data), ', '.join(dates))
+            dates = ', '.join([torrent['date'] for torrent in data])
+            s = '' if len(data) < 2 else 's'
+            print '%s torrent%s found from %s.' % (len(data), s, dates)
             for torrent in data:
                 repr_torrent(torrent, True)
         else:
@@ -139,6 +140,7 @@ def main():
     # TODO Create a settings file and a parse settings function.
     # TODO Add filtering options - only show HD etc and rank torrents based on
     # the size, the name (contains 720p/1080p/BluRay?) and the number of seeds.
+    # TODO Add option to select the best torrent and download it.
     args = parse_args()
     html = get_html(args.query, args.index)
     data = parse_html(html)
